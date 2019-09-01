@@ -25,6 +25,7 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     public static final int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 0;
+    public static final int MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS = 1;
     public static final String URL = "http://112.74.170.24/";
 
     CallReceiver callReceiver;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Here, thisActivity is the current activity
+        // Firstly, we check READ_PHONE_STATE permission
         if (ContextCompat.checkSelfPermission(MainActivity.this,
                 Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -119,10 +121,35 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted!
+                    // check PROCESS_OUTGOING_CALLS permission only when READ_PHONE_STATE is granted
+                    if (ContextCompat.checkSelfPermission(MainActivity.this,
+                            Manifest.permission.PROCESS_OUTGOING_CALLS)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        // We do not have this permission. Let's ask the user
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS},
+                                MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS);
+                    }
                 } else {
                     // permission denied or has been cancelled
+                    Toast.makeText(getApplicationContext(),
+                            "READ_PHONE_STATE permission missing!",
+                            Toast.LENGTH_LONG).show();
                 }
-                return;
+                break;
+            }
+            case MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS: {
+                if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission granted!
+                    Log.d("#", "Permissions granted!");
+                } else {
+                    // permission denied or has been cancelled
+                    Toast.makeText(getApplicationContext(),
+                            "PROCESS_OUTGOING_CALLS permission missing!",
+                            Toast.LENGTH_LONG).show();
+                }
+                break;
             }
         }
     }
@@ -156,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
             Log.d("#", msg);
+
+            webView.loadUrl("javascript:writeNumber('" + number + "')");
         }
 
         @Override
@@ -164,6 +193,8 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
             Log.d("#", msg);
+
+            webView.loadUrl("javascript:writeNumber('" + number + "')");
         }
 
         @Override
@@ -172,6 +203,8 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
             Log.d("#", msg);
+
+            webView.loadUrl("javascript:writeNumber('" + number + "')");
         }
 
         @Override
@@ -180,6 +213,8 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
             Log.d("#", msg);
+
+            webView.loadUrl("javascript:writeNumber('" + number + "')");
         }
     }
 
@@ -187,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
 
         @JavascriptInterface
         public void debug(String msg) {
-            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
         }
     }
 }
