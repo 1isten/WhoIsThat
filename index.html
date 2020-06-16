@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Who Is That</title>
+  <meta name="description" content="📞 who's that?">
+</head>
+<body>
+  <div id="app">
+    <small style="font-size: smaller;"><i>this is a webpage hosted on github: <a href="https://sten.app/WhoIsThat/">https://sten.app/WhoIsThat/</a></i></small>
+    <p id="output" style="font-size: larger;">📞 who's that?</p>
+  </div>
+  <script>
+    const output = document.getElementById('output');
+        
+    if (window.sten) {
+        // webview detected, call a native java function debug()
+        sten.debug('🔥JsLoaded');
+    } else {
+        output.textContent = "🌚 sten's out...";
+        output.style.color = 'red';
+    }
+
+    // call a javascript function writeNumber(num) from webview
+    function writeNumber(num) {
+        output.textContent = '📞 ' + num;
+        output.style.color = 'green';
+    }
+  </script>
+</body>
+</html>
