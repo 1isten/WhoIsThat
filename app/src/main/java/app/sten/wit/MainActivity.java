@@ -24,9 +24,10 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String URL = "https://sten.app/WhoIsThat/";
+
     public static final int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 0;
     public static final int MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS = 1;
-    public static final String URL = "http://112.74.170.24/";
 
     CallReceiver callReceiver;
     WebView webView;
@@ -121,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted!
+                    Log.d("###", "READ_PHONE_STATE granted!");
                     // check PROCESS_OUTGOING_CALLS permission only when READ_PHONE_STATE is granted
                     if (ContextCompat.checkSelfPermission(MainActivity.this,
                             Manifest.permission.PROCESS_OUTGOING_CALLS)
@@ -132,8 +134,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     // permission denied or has been cancelled
+                    Log.d("###", "READ_PHONE_STATE denied!");
                     Toast.makeText(getApplicationContext(),
-                            "READ_PHONE_STATE permission missing!",
+                            "missing READ_PHONE_STATE",
                             Toast.LENGTH_LONG).show();
                 }
                 break;
@@ -142,11 +145,12 @@ public class MainActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted!
-                    Log.d("#", "Permissions granted!");
+                    Log.d("###", "PROCESS_OUTGOING_CALLS granted!");
                 } else {
                     // permission denied or has been cancelled
+                    Log.d("###", "PROCESS_OUTGOING_CALLS denied!");
                     Toast.makeText(getApplicationContext(),
-                            "PROCESS_OUTGOING_CALLS permission missing!",
+                            "missing PROCESS_OUTGOING_CALLS",
                             Toast.LENGTH_LONG).show();
                 }
                 break;
@@ -168,31 +172,11 @@ public class MainActivity extends AppCompatActivity {
     class CallReceiver extends PhonecallReceiver {
 
         @Override
-        protected void onIncomingCallStarted(Context ctx, String number, Date start) {
-            String msg = "start incoming call: " + number + " at " + start;
-
-            Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.d("#", msg);
-
-            webView.loadUrl("javascript:writeNumber('" + number + "')");
-        }
-
-        @Override
         protected void onOutgoingCallStarted(Context ctx, String number, Date start) {
             String msg = "start outgoing call: " + number + " at " + start;
 
+            Log.d("###", msg);
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.d("#", msg);
-
-            webView.loadUrl("javascript:writeNumber('" + number + "')");
-        }
-
-        @Override
-        protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
-            String msg = "end incoming call: " + number + " at " + end;
-
-            Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.d("#", msg);
 
             webView.loadUrl("javascript:writeNumber('" + number + "')");
         }
@@ -201,18 +185,38 @@ public class MainActivity extends AppCompatActivity {
         protected void onOutgoingCallEnded(Context ctx, String number, Date start, Date end) {
             String msg = "end outgoing call: " + number + " at " + end;
 
+            Log.d("###", msg);
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.d("#", msg);
 
             webView.loadUrl("javascript:writeNumber('" + number + "')");
         }
 
         @Override
-        protected void onMissedCall(Context ctx, String number, Date start) {
-            String msg = "missed call: " + number + " at " + start;
+        protected void onIncomingCallStarted(Context ctx, String number, Date start) {
+            String msg = "start incoming call: " + number + " at " + start;
 
+            Log.d("###", msg);
             Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-            Log.d("#", msg);
+
+            webView.loadUrl("javascript:writeNumber('" + number + "')");
+        }
+
+        @Override
+        protected void onIncomingCallEnded(Context ctx, String number, Date start, Date end) {
+            String msg = "end incoming call: " + number + " at " + end;
+
+            Log.d("###", msg);
+            Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+
+            webView.loadUrl("javascript:writeNumber('" + number + "')");
+        }
+
+        @Override
+        protected void onMissedCall(Context ctx, String number, Date missed) {
+            String msg = "missed call: " + number + " at " + missed;
+
+            Log.d("###", msg);
+            Toast.makeText(ctx.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 
             webView.loadUrl("javascript:writeNumber('" + number + "')");
         }

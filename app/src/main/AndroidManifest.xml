@@ -30,7 +30,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- statically register CallReceiver
+        <!-- statically register CallReceiver -->
+        <!--
         <receiver android:name=".CallReceiver" android:enabled="true">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
@@ -38,7 +39,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
-        </receiver>-->
+        </receiver>
+        -->
     </application>
 
 </manifest>
