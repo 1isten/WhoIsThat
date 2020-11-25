@@ -24,10 +24,11 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String URL = "https://sten.app/WhoIsThat/";
+    public static final String DEMO_URL = "https://sten.app/WhoIsThat/";
 
-    public static final int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 0;
-    public static final int MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS = 1;
+    public static final int MY_PERMISSIONS_REQUEST_READ_CALL_LOG = 0;
+    public static final int MY_PERMISSIONS_REQUEST_READ_PHONE_STATE = 1;
+    public static final int MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS = 2;
 
     CallReceiver callReceiver;
     WebView webView;
@@ -38,28 +39,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Here, thisActivity is the current activity
-        // Firstly, we check READ_PHONE_STATE permission
-        if (ContextCompat.checkSelfPermission(MainActivity.this,
-                Manifest.permission.READ_PHONE_STATE)
-                != PackageManager.PERMISSION_GRANTED) {
+        // Firstly, we check READ_CALL_LOG permission
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CALL_LOG) != PackageManager.PERMISSION_GRANTED) {
             // We do not have this permission. Let's ask the user
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.READ_PHONE_STATE},
-                    MY_PERMISSIONS_REQUEST_READ_PHONE_STATE);
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CALL_LOG}, MY_PERMISSIONS_REQUEST_READ_CALL_LOG);
         }
 
+        // dynamically register CallReceiver
         if (callReceiver == null) {
             callReceiver = new CallReceiver();
         }
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction("android.intent.action.PHONE_STATE");
         intentFilter.addAction("android.intent.action.NEW_OUTGOING_CALL");
-        // dynamically register CallReceiver
         registerReceiver(callReceiver, intentFilter);
 
+        // setup WebView for demo
         webView = (WebView) findViewById(R.id.webview);
-
         webView.addJavascriptInterface(new JsObject(), "sten");
         webView.getSettings().setDefaultTextEncodingName("utf-8");
         webView.getSettings().setJavaScriptEnabled(true);
@@ -67,9 +63,6 @@ public class MainActivity extends AppCompatActivity {
         webView.getSettings().setSupportZoom(true);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.getSettings().setDisplayZoomControls(false);
-
-        webView.loadUrl(URL);
-
         webView.setWebViewClient(new WebViewClient() {
 
             @Override
@@ -102,12 +95,13 @@ public class MainActivity extends AppCompatActivity {
                 super.onPageFinished(view, url);
             }
         });
+        webView.loadUrl(DEMO_URL);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // manually unregister dynamically registered CallReceiver
+        // manually unregister CallReceiver
         if (callReceiver != null) {
             unregisterReceiver(callReceiver);
             callReceiver = null;
@@ -115,43 +109,48 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-            String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_READ_CALL_LOG: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission granted!
+                    Log.d("###", "READ_CALL_LOG granted!");
+                    // check READ_PHONE_STATE permission only when READ_CALL_LOG is granted
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                        // We do not have this permission. Let's ask the user
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_PHONE_STATE}, MY_PERMISSIONS_REQUEST_READ_PHONE_STATE);
+                    }
+                } else {
+                    // permission denied or has been cancelled
+                    Log.d("###", "READ_CALL_LOG denied!");
+                    Toast.makeText(getApplicationContext(), "missing READ_CALL_LOG", Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
             case MY_PERMISSIONS_REQUEST_READ_PHONE_STATE: {
-                if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted!
                     Log.d("###", "READ_PHONE_STATE granted!");
                     // check PROCESS_OUTGOING_CALLS permission only when READ_PHONE_STATE is granted
-                    if (ContextCompat.checkSelfPermission(MainActivity.this,
-                            Manifest.permission.PROCESS_OUTGOING_CALLS)
-                            != PackageManager.PERMISSION_GRANTED) {
+                    if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.PROCESS_OUTGOING_CALLS) != PackageManager.PERMISSION_GRANTED) {
                         // We do not have this permission. Let's ask the user
-                        ActivityCompat.requestPermissions(MainActivity.this,
-                                new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS},
-                                MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS);
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.PROCESS_OUTGOING_CALLS}, MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS);
                     }
                 } else {
                     // permission denied or has been cancelled
                     Log.d("###", "READ_PHONE_STATE denied!");
-                    Toast.makeText(getApplicationContext(),
-                            "missing READ_PHONE_STATE",
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "missing READ_PHONE_STATE", Toast.LENGTH_LONG).show();
                 }
                 break;
             }
             case MY_PERMISSIONS_REQUEST_PROCESS_OUTGOING_CALLS: {
-                if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted!
                     Log.d("###", "PROCESS_OUTGOING_CALLS granted!");
                 } else {
                     // permission denied or has been cancelled
                     Log.d("###", "PROCESS_OUTGOING_CALLS denied!");
-                    Toast.makeText(getApplicationContext(),
-                            "missing PROCESS_OUTGOING_CALLS",
-                            Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "missing PROCESS_OUTGOING_CALLS", Toast.LENGTH_LONG).show();
                 }
                 break;
             }
