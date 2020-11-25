@@ -5,6 +5,8 @@ import java.util.Date;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
+import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
 public abstract class PhonecallReceiver extends BroadcastReceiver {
@@ -18,24 +20,35 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
     private static String savedNumber; // because the passed incoming is only valid in ringing
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, Intent intent) {
 
         // We listen to two intents. The new outgoing call only tells us of an outgoing call.
         // We use it to get the number.
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             savedNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
         } else {
-            String stateStr = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
-            String number = intent.getExtras().getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
-            int state = 0;
-            if (stateStr.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                state = TelephonyManager.CALL_STATE_IDLE;
-            } else if (stateStr.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                state = TelephonyManager.CALL_STATE_OFFHOOK;
-            } else if (stateStr.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                state = TelephonyManager.CALL_STATE_RINGING;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                String stateStr = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
+                String number = intent.getExtras().getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
+                int state = 0;
+                if (stateStr.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                    state = TelephonyManager.CALL_STATE_IDLE;
+                } else if (stateStr.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                    state = TelephonyManager.CALL_STATE_OFFHOOK;
+                } else if (stateStr.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                    state = TelephonyManager.CALL_STATE_RINGING;
+                }
+                onCustomCallStateChanged(context, state, number);
+            } else {
+                // Android 9+
+                TelephonyManager telephony = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+                telephony.listen(new PhoneStateListener() {
+                    @Override
+                    public void onCallStateChanged(int state, String number) {
+                        onCustomCallStateChanged(context, state, number);
+                    }
+                }, PhoneStateListener.LISTEN_CALL_STATE);
             }
-            onCallStateChanged(context, state, number);
         }
     }
 
@@ -50,7 +63,7 @@ public abstract class PhonecallReceiver extends BroadcastReceiver {
 
     // Incoming call - goes from IDLE to RINGING when it rings, to OFFHOOK when it's answered, to IDLE when its hung up
     // Outgoing call - goes from IDLE to OFFHOOK when it dials out, to IDLE when hung up
-    public void onCallStateChanged(Context context, int state, String number) {
+    public void onCustomCallStateChanged(Context context, int state, String number) {
         if (lastState == state) {
             // No change, debounce extras
             return;
